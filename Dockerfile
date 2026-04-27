@@ -55,7 +55,7 @@ RUN python3 -m venv --copies /rails/docling-venv && \
 
 # npm deps + CSS compilation
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 COPY . .
 

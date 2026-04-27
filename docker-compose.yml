@@ -4,9 +4,7 @@ services:
     ports:
       - "80:80"
     environment:
-      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-      # Optional overrides:
-      # SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       # DOCLING_PYTHON: /rails/docling-venv/bin/python3
     volumes:
       # Persist generated IOC files across restarts

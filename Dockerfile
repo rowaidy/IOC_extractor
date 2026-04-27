@@ -25,7 +25,7 @@ ENV RAILS_ENV="production" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so" \
-    DOCLING_PYTHON="/rails/docling-venv/bin/python3"
+    DOCLING_PYTHON="/docling-venv/bin/python3"
 
 # ── Build stage ───────────────────────────────────────────────────────────────
 FROM base AS build
@@ -62,22 +62,21 @@ RUN rm -rf node_modules
 # ── Final image ───────────────────────────────────────────────────────────────
 FROM base
 
-# Install docling venv in the final image so all system libs match at runtime.
-# This layer is cached independently — only rebuilds when this line changes.
+# Install docling venv at /docling-venv (outside /rails) so the app COPY
+# cannot overwrite it. System libs match because this runs in the final image.
 # NOTE: pulls ~2 GB of ML dependencies (PyTorch, Transformers).
-RUN python3 -m venv /rails/docling-venv && \
-    /rails/docling-venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /rails/docling-venv/bin/pip install --no-cache-dir docling
+RUN python3 -m venv /docling-venv && \
+    /docling-venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /docling-venv/bin/pip install --no-cache-dir docling
 
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
     mkdir -p /rails/tmp/ioc_files /rails/log && \
-    chown -R 1000:1000 /rails/tmp /rails/log /rails/docling-venv
+    chown -R 1000:1000 /rails/tmp /rails/log /docling-venv
 
 USER 1000:1000
 
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-# COPY merges into /rails without deleting /rails/docling-venv created above
 COPY --chown=rails:rails --from=build /rails /rails
 
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]

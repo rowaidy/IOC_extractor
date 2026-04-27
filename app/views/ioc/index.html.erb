@@ -1,0 +1,137 @@
+<% content_for :title, "IOC Extractor" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <%# Hero %>
+    <div class="text-center mb-5">
+      <div class="mb-3">
+        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3.5rem;"></i>
+      </div>
+      <h1 class="display-5 fw-bold">IOC Extractor</h1>
+      <p class="lead text-secondary">
+        Upload any file — PDF, Word, spreadsheet, CSV, plain text, and more.
+        Indicators are extracted automatically and packaged as a standards-compliant
+        <strong>OpenIOC 1.0</strong> file.
+      </p>
+    </div>
+
+    <%# Upload card %>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4 p-md-5">
+        <%= form_with url: convert_path, multipart: true, data: { controller: "upload" } do |f| %>
+
+          <div class="mb-4">
+            <%= f.label :ioc_name, "IOC Name / Description", class: "form-label fw-semibold" %>
+            <%= f.text_field :ioc_name,
+                  placeholder: "e.g. Malware Campaign Q2 2026",
+                  class: "form-control form-control-lg",
+                  value: "Indicators" %>
+            <div class="form-text">Used as the <code>short_description</code> in the generated IOC.</div>
+          </div>
+
+          <div class="mb-4">
+            <%= f.label :file, "Document / File", class: "form-label fw-semibold" %>
+            <div class="upload-zone border-2 border-dashed rounded-3 p-5 text-center"
+                 id="upload-zone"
+                 data-upload-target="zone">
+              <i class="bi bi-cloud-upload-fill text-primary mb-2" style="font-size: 2.5rem;"></i>
+              <p class="mb-2 text-secondary">Drag &amp; drop your file here or</p>
+              <%= f.file_field :file,
+                    class: "d-none",
+                    id: "file_input",
+                    data: { upload_target: "input", action: "change->upload#fileSelected" } %>
+              <label for="file_input" class="btn btn-outline-primary">
+                <i class="bi bi-folder2-open me-1"></i> Browse file
+              </label>
+              <p class="mt-3 mb-0 text-muted small" data-upload-target="filename">No file selected</p>
+            </div>
+            <div class="form-text mt-1">
+              Plain text files (CSV, TXT, LOG, XML…) are read directly.
+              Binary formats (PDF, DOCX, PPTX, XLSX…) require
+              <a href="https://github.com/docling-project/docling" target="_blank" rel="noopener">docling</a>
+              to be installed: <code>pip install docling</code>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Output format</label>
+            <div class="d-flex gap-4">
+              <div class="form-check">
+                <%= f.radio_button :split_mode, "auto", class: "form-check-input", id: "split_auto", checked: true %>
+                <label class="form-check-label" for="split_auto">
+                  Auto-split <span class="text-muted small">(multiple files if &gt;11 000 chars)</span>
+                </label>
+              </div>
+              <div class="form-check">
+                <%= f.radio_button :split_mode, "single", class: "form-check-input", id: "split_single" %>
+                <label class="form-check-label" for="split_single">
+                  Single file <span class="text-muted small">(no size limit enforced)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <%= f.submit "Extract Indicators → IOC",
+                  class: "btn btn-primary btn-lg",
+                  data: { disable_with: "Extracting…" } %>
+          </div>
+
+        <% end %>
+      </div>
+    </div>
+
+    <%# Supported indicator types %>
+    <div class="mt-5">
+      <h5 class="fw-semibold mb-3 text-center text-secondary">Detected Indicator Types</h5>
+      <div class="row g-2">
+        <% [
+          ["bi-hash",              "text-info",    "MD5 / SHA-1 / SHA-256 / SHA-512"],
+          ["bi-globe",             "text-primary", "IPv4 / IPv6 Addresses"],
+          ["bi-link-45deg",        "text-warning", "URLs"],
+          ["bi-at",                "text-success", "Email Addresses"],
+          ["bi-diagram-3",         "text-danger",  "Domain Names"],
+          ["bi-folder2",           "text-primary", "Windows &amp; Unix File Paths"],
+          ["bi-database",          "text-warning", "Windows Registry Keys"],
+          ["bi-cpu",               "text-info",    "Mutex / Service Names"],
+        ].each do |icon, color, label| %>
+          <div class="col-12 col-md-6">
+            <div class="d-flex align-items-center gap-2 px-3 py-2 rounded bg-body shadow-sm">
+              <i class="bi <%= icon %> <%= color %> fs-5"></i>
+              <span class="small"><%= label.html_safe %></span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Supported file formats %>
+    <div class="mt-4">
+      <h5 class="fw-semibold mb-3 text-center text-secondary">Supported File Formats</h5>
+      <div class="row g-2 text-center">
+        <% [
+          ["bi-filetype-csv",  "text-success", "CSV / TSV"],
+          ["bi-filetype-txt",  "text-secondary","TXT / LOG"],
+          ["bi-filetype-pdf",  "text-danger",  "PDF"],
+          ["bi-filetype-docx", "text-primary",  "DOCX / DOC"],
+          ["bi-filetype-pptx", "text-warning",  "PPTX / PPT"],
+          ["bi-filetype-xlsx", "text-success",  "XLSX / XLS"],
+          ["bi-filetype-html", "text-primary",  "HTML / XML"],
+          ["bi-file-image",    "text-info",     "PNG / JPG / BMP / TIFF"],
+          ["bi-file-earmark",  "text-secondary","+ more via docling"],
+        ].each do |icon, color, label| %>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 bg-body shadow-sm h-100">
+              <div class="card-body py-3">
+                <i class="bi <%= icon %> <%= color %> fs-4 d-block mb-1"></i>
+                <div class="small text-muted"><%= label %></div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+</div>

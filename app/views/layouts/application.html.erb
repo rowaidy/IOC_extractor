@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "IOC Extractor" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="IOC Extractor">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="d-flex flex-column min-vh-100 bg-body-tertiary">
+
+    <%# Processing overlay — shown by upload Stimulus controller on form submit %>
+    <div id="processing-overlay" class="processing-overlay d-none" aria-hidden="true">
+      <div class="processing-card">
+        <div class="shield-pulse mb-4">
+          <i class="bi bi-shield-lock-fill text-primary"></i>
+        </div>
+        <h4 class="fw-bold mb-1">Processing Document</h4>
+        <p class="text-secondary small mb-4">Extracting &amp; analysing indicators&hellip;</p>
+
+        <div class="progress mb-4" style="height:6px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary processing-bar"
+               role="progressbar" style="width:0%"></div>
+        </div>
+
+        <ul class="processing-steps list-unstyled text-start mb-0">
+          <li data-step="0"><i class="bi bi-circle me-2"></i>Reading document</li>
+          <li data-step="1"><i class="bi bi-circle me-2"></i>Extracting text</li>
+          <li data-step="2"><i class="bi bi-circle me-2"></i>Detecting IOC indicators</li>
+          <li data-step="3"><i class="bi bi-circle me-2"></i>Building OpenIOC file</li>
+          <li data-step="4"><i class="bi bi-circle me-2"></i>Finalising</li>
+        </ul>
+      </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div class="container">
+        <%= link_to root_path, class: "navbar-brand d-flex align-items-center gap-2" do %>
+          <i class="bi bi-shield-lock-fill text-primary fs-4"></i>
+          <span class="fw-bold">IOC <span class="text-primary">Extractor</span></span>
+        <% end %>
+        <a href="https://www.linkedin.com/in/khalid-abuelhassan-a9a0a945/"
+           target="_blank" rel="noopener"
+           class="navbar-text text-secondary small ms-auto d-flex align-items-center gap-1 text-decoration-none">
+          <i class="bi bi-linkedin text-primary"></i>
+          Khalid Abuelhassan
+        </a>
+      </div>
+    </nav>
+
+    <main class="flex-grow-1 py-5">
+      <div class="container">
+        <% if flash[:alert] %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><%= flash[:alert] %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+        <% if flash[:notice] %>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><%= flash[:notice] %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+        <%= yield %>
+      </div>
+    </main>
+
+    <footer class="py-3 bg-dark text-center">
+      <small class="text-secondary">
+        IOC Extractor &mdash; OpenIOC 1.0 format &mdash;
+        <a href="https://www.linkedin.com/in/khalid-abuelhassan-a9a0a945/"
+           target="_blank" rel="noopener"
+           class="text-primary text-decoration-none">
+          <i class="bi bi-linkedin me-1"></i>Khalid Abuelhassan
+        </a>
+      </small>
+    </footer>
+  </body>
+</html>

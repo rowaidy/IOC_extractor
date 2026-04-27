@@ -1,0 +1,84 @@
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons';
+
+.upload-zone {
+  border-color: var(--bs-border-color) !important;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+
+  &:hover,
+  &.drag-over {
+    border-color: var(--bs-primary) !important;
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+  }
+}
+
+.border-dashed {
+  border-style: dashed !important;
+}
+
+pre code {
+  white-space: pre;
+}
+
+// ── Processing overlay ──────────────────────────────────────────────────────
+
+.processing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  &.d-none { display: none !important; }
+}
+
+.processing-card {
+  background: var(--bs-body-bg);
+  border-radius: 1.25rem;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.4);
+}
+
+// Pulsing shield icon
+.shield-pulse {
+  font-size: 3.5rem;
+  animation: shield-beat 1.4s ease-in-out infinite;
+  display: inline-block;
+
+  i { display: block; }
+}
+
+@keyframes shield-beat {
+  0%, 100% { transform: scale(1);   opacity: 1;    }
+  50%       { transform: scale(1.15); opacity: 0.75; }
+}
+
+// Step list
+.processing-steps {
+  li {
+    padding: 0.35rem 0;
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+    transition: color 0.3s, font-weight 0.3s;
+
+    i { transition: all 0.3s; }
+
+    &.step-done {
+      color: var(--bs-success);
+      i::before { content: "\F26A"; } // bi-check-circle-fill
+    }
+
+    &.step-active {
+      color: var(--bs-primary);
+      font-weight: 600;
+      i::before { content: "\F2DC"; } // bi-arrow-right-circle-fill
+    }
+  }
+}

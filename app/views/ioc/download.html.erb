@@ -1,0 +1,241 @@
+<% content_for :title, "Download IOC" %>
+
+<%
+  group_meta = {
+    hash:       { label: "File Hashes",     icon: "bi-hash",     color: "info"    },
+    network:    { label: "Network",         icon: "bi-globe",    color: "primary" },
+    filesystem: { label: "File System",     icon: "bi-folder2",  color: "warning" },
+    registry:   { label: "Registry",        icon: "bi-database", color: "danger"  },
+    process:    { label: "Process / Mutex", icon: "bi-cpu",      color: "success" },
+  }
+
+  type_meta = IocExtractorService::INDICATORS.transform_values { |v| v.slice(:label, :group) }
+
+  badge_color = {
+    sha512: "secondary", sha256: "success", sha1: "warning", md5: "info",
+    ipv4: "primary", ipv6: "primary", url: "danger", email: "success",
+    domain: "warning", filepath_win: "secondary", filepath_unix: "secondary",
+    registry_key: "danger", mutex: "info", service_name: "info"
+  }
+
+  grouped    = @entries.group_by { |e| type_meta.dig(e[:type], :group) || :other }
+  type_counts = @entries.group_by { |e| e[:type] }.transform_values(&:count)
+%>
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+
+    <%# Flash notices %>
+    <% if notice %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i><%= notice %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% end %>
+    <% if alert %>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><%= alert %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% end %>
+
+    <%# Success banner %>
+    <div class="text-center mb-5">
+      <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 p-4 mb-3">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+      </span>
+      <h1 class="display-6 fw-bold">IOC <%= @multi ? "Bundle" : "File" %> Ready</h1>
+      <p class="lead text-secondary mb-1">
+        <strong><span id="ioc-total-banner"><%= @entries.size %></span></strong>
+        indicator <%= @entries.size == 1 ? "item" : "items" %>
+        across <strong><%= grouped.keys.size %></strong> <%= grouped.keys.size == 1 ? "category" : "categories" %>
+        <% if @multi %>
+          &rarr; split into <strong><%= @filenames.size %> files</strong> (≤11 000 chars each)
+        <% else %>
+          &rarr; <code><%= @filenames.first %></code>
+        <% end %>
+      </p>
+    </div>
+
+    <%# Split-file notice %>
+    <% if @multi %>
+      <div class="alert alert-info d-flex align-items-start gap-2 mb-4">
+        <i class="bi bi-info-circle-fill mt-1"></i>
+        <div>
+          <strong>Split into <%= @filenames.size %> IOC files</strong> — each file stays under 11 000 characters
+          to respect the 12 288-character platform limit. All files are bundled in a single ZIP.
+          <ul class="mb-0 mt-1 small">
+            <% @filenames.each do |fn| %><li><code><%= fn %></code></li><% end %>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Download + back buttons %>
+    <div class="d-flex justify-content-center gap-3 mb-4 flex-wrap">
+      <%= link_to download_path(@token, format: "file"),
+            class: "btn btn-success btn-lg px-5 shadow" do %>
+        <i class="bi bi-<%= @multi ? 'file-zip' : 'download' %> me-2"></i>
+        <%= @multi ? "Download ZIP bundle (#{@filenames.size} files)" : "Download #{@filenames.first}" %>
+      <% end %>
+      <%= link_to root_path, class: "btn btn-outline-secondary btn-lg" do %>
+        <i class="bi bi-arrow-left me-1"></i> Extract another
+      <% end %>
+    </div>
+
+    <%# Editable indicators form %>
+    <%= form_with url: update_download_path(@token), method: :patch,
+                  data: { controller: "ioc-editor" } do |f| %>
+
+      <%# Sticky save bar (hidden until a change is made) %>
+      <div class="sticky-top pt-2 pb-2 mb-3 d-none" id="save-bar"
+           data-ioc-editor-target="saveBar" style="z-index:1030;">
+        <div class="alert alert-warning d-flex align-items-center justify-content-between mb-0 shadow">
+          <span><i class="bi bi-pencil-square me-2"></i>You have unsaved changes.</span>
+          <button type="submit" class="btn btn-warning btn-sm px-4 fw-semibold">
+            <i class="bi bi-save me-1"></i>Save &amp; Regenerate IOC
+          </button>
+        </div>
+      </div>
+
+      <%# Group summary cards %>
+      <div class="row g-3 mb-4">
+        <% grouped.each do |group, items| %>
+          <% meta = group_meta[group] || { label: group.to_s.capitalize, icon: "bi-tag", color: "secondary" } %>
+          <div class="col-6 col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm text-center h-100">
+              <div class="card-body py-4">
+                <i class="bi <%= meta[:icon] %> text-<%= meta[:color] %> fs-3 d-block mb-1"></i>
+                <div class="display-6 fw-bold text-<%= meta[:color] %>"><%= items.size %></div>
+                <div class="text-muted small mt-1"><%= meta[:label] %></div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card border-0 shadow-sm text-center h-100 bg-dark text-white">
+            <div class="card-body py-4">
+              <i class="bi bi-shield-check fs-3 d-block mb-1 text-primary"></i>
+              <div class="display-6 fw-bold" data-ioc-editor-target="total"><%= @entries.size %></div>
+              <div class="small mt-1 text-secondary">Total Indicators</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# Per-group editable tables %>
+      <% grouped.each do |group, items| %>
+        <% meta = group_meta[group] || { label: group.to_s.capitalize, icon: "bi-tag", color: "secondary" } %>
+        <div class="card border-0 shadow-sm mb-4 ioc-group-card">
+          <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between">
+            <span><i class="bi <%= meta[:icon] %> text-<%= meta[:color] %> me-2"></i><strong><%= meta[:label] %></strong></span>
+            <span class="badge bg-<%= meta[:color] %> text-dark"><%= items.size %></span>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+              <table class="table table-sm table-hover mb-0 align-middle">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th class="ps-3" style="width:2.5rem;">#</th>
+                    <th>Indicator Value</th>
+                    <th style="width:9rem;">Type</th>
+                    <th class="pe-2" style="width:3rem;"></th>
+                  </tr>
+                </thead>
+                <tbody class="font-monospace small">
+                  <% items.each_with_index do |entry, i| %>
+                    <tr>
+                      <td class="ps-3 text-muted"><%= i + 1 %></td>
+                      <td>
+                        <input type="text"
+                               name="entries[][value]"
+                               value="<%= h entry[:value] %>"
+                               class="form-control form-control-sm font-monospace border-0 bg-transparent px-0"
+                               style="min-width:200px;"
+                               data-action="change->ioc-editor#markDirty">
+                        <input type="hidden" name="entries[][type]" value="<%= entry[:type] %>">
+                      </td>
+                      <td>
+                        <span class="badge text-bg-<%= badge_color[entry[:type]] || 'secondary' %>">
+                          <%= type_meta.dig(entry[:type], :label) || entry[:type] %>
+                        </span>
+                      </td>
+                      <td class="pe-2 text-end">
+                        <button type="button"
+                                class="btn btn-link btn-sm text-danger p-0"
+                                title="Delete"
+                                data-action="click->ioc-editor#deleteRow">
+                          <i class="bi bi-trash3"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Output format + save %>
+      <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <span class="fw-semibold me-3">Output format</span>
+            <div class="d-inline-flex gap-4">
+              <div class="form-check form-check-inline mb-0">
+                <input class="form-check-input" type="radio" name="split_mode" id="dl_split_auto"
+                       value="auto" <%= @split_mode == "auto" ? "checked" : "" %>
+                       data-action="change->ioc-editor#markDirty">
+                <label class="form-check-label" for="dl_split_auto">
+                  Auto-split <span class="text-muted small">(multiple files if &gt;11 000 chars)</span>
+                </label>
+              </div>
+              <div class="form-check form-check-inline mb-0">
+                <input class="form-check-input" type="radio" name="split_mode" id="dl_split_single"
+                       value="single" <%= @split_mode == "single" ? "checked" : "" %>
+                       data-action="change->ioc-editor#markDirty">
+                <label class="form-check-label" for="dl_split_single">
+                  Single file <span class="text-muted small">(no split)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary px-5">
+            <i class="bi bi-save me-1"></i>Save &amp; Regenerate IOC
+          </button>
+        </div>
+      </div>
+
+    <% end %>
+
+    <%# Raw extracted text %>
+    <% if @extracted_text.present? %>
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-textarea-t me-2"></i>Raw Extracted Text <small class="text-secondary ms-2">(first 3000 chars)</small></span>
+          <button class="btn btn-sm btn-outline-light" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#raw-text-preview">Toggle</button>
+        </div>
+        <div class="collapse" id="raw-text-preview">
+          <pre class="p-3 mb-0 small bg-body-secondary rounded-bottom" style="max-height:400px;overflow:auto;white-space:pre-wrap;"><%= h @extracted_text %></pre>
+        </div>
+      </div>
+    <% end %>
+
+    <%# XML preview — single file only %>
+    <% if @xml_preview %>
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-file-earmark-code me-2"></i>IOC XML Preview <small class="text-secondary ms-2">(first 30 lines)</small></span>
+          <button class="btn btn-sm btn-outline-light" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#xml-preview">Toggle</button>
+        </div>
+        <div class="collapse" id="xml-preview">
+          <pre class="p-3 mb-0 small bg-body-secondary rounded-bottom" style="max-height:400px;overflow:auto;"><code><%= h @xml_preview %></code></pre>
+        </div>
+      </div>
+    <% end %>
+
+  </div>
+</div>

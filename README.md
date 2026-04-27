@@ -232,8 +232,8 @@ Docker is the easiest way to run IOC Extractor in production. All dependencies �
 **Step 1 — Clone the repository**
 
 ```bash
-git clone https://github.com/rowaidy/Advanced_IOC_extractor.git
-cd Advanced_IOC_extractor
+git clone https://github.com/rowaidy/IOC_extractor.git
+cd IOC_extractor
 ```
 
 **Step 2 — Configure environment**
@@ -242,13 +242,7 @@ cd Advanced_IOC_extractor
 cp .env.example .env
 ```
 
-Edit `.env` and set your Rails master key:
-
-```
-RAILS_MASTER_KEY=<value from config/master.key>
-```
-
-> The master key is generated once per installation. If deploying from source, copy `config/master.key` from the original machine. If starting fresh, run `bin/rails credentials:edit` locally to generate new credentials.
+The `.env.example` file ships with a pre-generated `SECRET_KEY_BASE`. No editing required for a standard deployment. The application does not require `config/master.key` or `RAILS_MASTER_KEY`.
 
 **Step 3 — Build and start**
 
@@ -296,7 +290,7 @@ docker compose down -v
 
 | Variable | Required | Description |
 |---|---|---|
-| `RAILS_MASTER_KEY` | Yes | Decrypts `config/credentials.yml.enc` |
+| `SECRET_KEY_BASE` | Yes | Rails session signing secret (pre-generated in `.env.example`) |
 | `RAILS_ENV` | No | Defaults to `production` inside the image |
 | `DOCLING_PYTHON` | No | Defaults to `/rails/docling-venv/bin/python3` |
 

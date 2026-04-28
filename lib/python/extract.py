@@ -47,8 +47,8 @@ def extract_text(file_path: str) -> str:
 
         return text.strip()
 
-    except ImportError:
-        raise RuntimeError("docling is not installed. Run: pip install docling")
+    except ImportError as e:
+        raise RuntimeError(f"docling import failed ({e}). Venv: {sys.executable}")
 
 
 if __name__ == "__main__":

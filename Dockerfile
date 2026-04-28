@@ -16,7 +16,7 @@ RUN apt-get update -qq && \
       curl libjemalloc2 libvips sqlite3 \
       tesseract-ocr tesseract-ocr-eng \
       python3 python3-venv python3-pip \
-      libgomp1 && \
+      libgomp1 libgfortran5 libopenblas0-pthread && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 

@@ -22,6 +22,14 @@ export default class extends Controller {
     this.markDirty()
   }
 
+  deleteGroup(event) {
+    const card = event.currentTarget.closest(".ioc-group-card")
+    if (!card) return
+    card.remove()
+    this.refreshCount()
+    this.markDirty()
+  }
+
   refreshCount() {
     const n = this.element.querySelectorAll("tbody tr").length
     if (this.hasTotalTarget) this.totalTarget.textContent = n

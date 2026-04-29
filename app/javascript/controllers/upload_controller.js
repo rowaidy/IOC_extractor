@@ -20,7 +20,10 @@ export default class extends Controller {
 
   fileSelected() {
     const file = this.inputTarget.files[0]
-    if (file) this.filenameTarget.textContent = file.name
+    if (file) {
+      this.filenameTarget.textContent = file.name
+      this.zoneTarget.classList.add("file-chosen")
+    }
   }
 
   onDragOver(e) {
@@ -41,6 +44,7 @@ export default class extends Controller {
     dt.items.add(file)
     this.inputTarget.files = dt.files
     this.filenameTarget.textContent = file.name
+    this.zoneTarget.classList.add("file-chosen")
   }
 
   onSubmit(e) {

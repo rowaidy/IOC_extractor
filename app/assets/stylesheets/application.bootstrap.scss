@@ -11,6 +11,11 @@
     border-color: var(--bs-primary) !important;
     background-color: rgba(var(--bs-primary-rgb), 0.05);
   }
+
+  &.file-chosen {
+    border-color: var(--bs-success) !important;
+    background-color: rgba(var(--bs-success-rgb), 0.07);
+  }
 }
 
 .border-dashed {

@@ -1,7 +1,7 @@
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
-    policy.script_src  :self, :nonce           # importmap generates inline <script> tags that need a nonce
+    policy.script_src  :self                   # nonce-<value> is appended automatically via nonce_directives below
     policy.style_src   :self, :unsafe_inline   # Bootstrap + inline style="" attributes used throughout
     policy.img_src     :self, :data
     policy.font_src    :self, :data

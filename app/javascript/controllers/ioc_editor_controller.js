@@ -30,6 +30,22 @@ export default class extends Controller {
 
   connect() {
     this.refreshCount()
+
+    // Bootstrap teleports modals to <body>, taking buttons outside this controller's
+    // element. Use document-level delegation so actions still fire after teleport.
+    this._onDocClick = (e) => {
+      if (e.target.closest("[data-ioc-confirm-add]")) this.confirmAdd(e)
+    }
+    this._onDocKeydown = (e) => {
+      if (e.target.id === "add-ioc-value" && e.key === "Enter") this.confirmAdd(e)
+    }
+    document.addEventListener("click",   this._onDocClick)
+    document.addEventListener("keydown", this._onDocKeydown)
+  }
+
+  disconnect() {
+    document.removeEventListener("click",   this._onDocClick)
+    document.removeEventListener("keydown", this._onDocKeydown)
   }
 
   deleteRow(event) {

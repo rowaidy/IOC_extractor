@@ -1,17 +1,10 @@
-# Technical Proposal: IOC Extractor
-
-**Document version:** 1.0  
-**Date:** April 2026  
-**Author:** Khalid Abuelhassan
-
----
-
 ## 1. Introduction
 
 Threat intelligence sharing is a cornerstone of modern cyber-defence. Security teams routinely encounter Indicators of Compromise (IOCs) — file hashes, IP addresses, domain names, URLs, file paths, registry keys, and more — embedded in PDF reports, Word documents, spreadsheets, images, and plain-text files. Extracting these indicators manually is time-consuming and error-prone, and preparing them in the format required by most SIEM, EDR, and threat-intelligence platforms (OpenIOC 1.0 XML) introduces additional friction.
 
 **IOC Extractor** is a web-based tool that eliminates this overhead. Analysts upload any document in any common format; the system automatically identifies all IOC indicators present in the document and delivers a standards-compliant OpenIOC 1.0 XML file ready for immediate platform import — without manual copy-paste or format conversion.
 
+a small POC machine is available here: https://iocextractor.lunarfang.com
 ---
 
 ## 2. Solution Summary
@@ -319,6 +312,3 @@ Any modern browser with ES2020 support:
 | Firefox | 88+ |
 | Safari | 14+ |
 
----
-
-*IOC Extractor — internal technical proposal — confidential*

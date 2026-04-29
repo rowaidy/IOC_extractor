@@ -1,7 +1,9 @@
 require "zip"
 
 class IocController < ApplicationController
-  TMPDIR = Rails.root.join("tmp", "ioc_files")
+  TMPDIR        = Rails.root.join("tmp", "ioc_files")
+  MAX_FILE_SIZE = 50.megabytes
+  TOKEN_RE      = /\A[A-Za-z0-9_\-]{20,50}\z/
 
   def index
   end
@@ -11,23 +13,32 @@ class IocController < ApplicationController
       return redirect_to root_path, alert: "Please select a file."
     end
 
-    ioc_name     = params[:ioc_name].presence || "Indicators"
-    force_single = params[:split_mode] == "single"
-    text         = DocumentExtractor.call(params[:file])
-    Rails.logger.debug("[IOC] extracted text (first 1000 chars):\n#{text[0..1000]}")
-    result       = IocExtractorService.call(text, ioc_name: ioc_name, force_single: force_single)
-
-    if result.error
-      snippet = text.gsub(/\s+/, " ").strip[0..300]
-      msg = Rails.env.development? ? "#{result.error} | Extracted: «#{snippet}»" : result.error
-      return redirect_to root_path, alert: msg
+    if params[:file].size > MAX_FILE_SIZE
+      return redirect_to root_path, alert: "File too large. Maximum allowed size is 50 MB."
     end
 
-    token = SecureRandom.urlsafe_base64(16)
+    ioc_name     = params[:ioc_name].presence || "Indicators"
+    force_single = params[:split_mode] == "single"
+
+    begin
+      text = DocumentExtractor.call(params[:file])
+    rescue DocumentExtractor::Error => e
+      return redirect_to root_path, alert: e.message
+    end
+
+    result = IocExtractorService.call(text, ioc_name: ioc_name, force_single: force_single)
+
+    if result.error
+      Rails.logger.warn("[IOC] extraction produced no indicators: #{result.error}")
+      return redirect_to root_path, alert: result.error
+    end
+
+    token = SecureRandom.urlsafe_base64(32)
     FileUtils.mkdir_p(TMPDIR)
+    purge_old_tmp_files
 
     if result.files.size == 1
-      File.write(TMPDIR.join("#{token}.ioc"),  result.files.first[:xml])
+      File.write(TMPDIR.join("#{token}.ioc"), result.files.first[:xml])
     else
       zip_path = TMPDIR.join("#{token}.zip")
       Zip::OutputStream.open(zip_path.to_s) do |zip|
@@ -48,15 +59,13 @@ class IocController < ApplicationController
 
     session[:ioc_token] = token
     redirect_to download_path(token)
-
-  rescue DocumentExtractor::Error => e
-    redirect_to root_path, alert: e.message
   end
 
   def update
-    token     = params[:token]
-    meta_path = TMPDIR.join("#{token}.json")
+    token = params[:token]
+    return redirect_to root_path, alert: "Invalid request." unless token&.match?(TOKEN_RE)
 
+    meta_path = TMPDIR.join("#{token}.json")
     unless File.exist?(meta_path) && session[:ioc_token] == token
       return redirect_to root_path, alert: "File not found or session expired."
     end
@@ -105,9 +114,10 @@ class IocController < ApplicationController
   end
 
   def download
-    token     = params[:token]
-    meta_path = TMPDIR.join("#{token}.json")
+    token = params[:token]
+    return redirect_to root_path, alert: "Invalid request." unless token&.match?(TOKEN_RE)
 
+    meta_path = TMPDIR.join("#{token}.json")
     unless File.exist?(meta_path) && session[:ioc_token] == token
       return redirect_to root_path, alert: "File not found or session expired."
     end
@@ -137,6 +147,16 @@ class IocController < ApplicationController
 
       ioc_path = multi ? nil : TMPDIR.join("#{token}.ioc")
       @xml_preview = ioc_path ? File.read(ioc_path).lines.first(30).join : nil
+    end
+  end
+
+  private
+
+  def purge_old_tmp_files
+    Dir.glob(TMPDIR.join("*")).each do |path|
+      File.delete(path) if File.file?(path) && File.mtime(path) < 24.hours.ago
+    rescue Errno::ENOENT
+      # concurrent delete — safe to ignore
     end
   end
 end

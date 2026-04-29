@@ -92,14 +92,14 @@
           ["bi-link-45deg",        "text-warning", "URLs"],
           ["bi-at",                "text-success", "Email Addresses"],
           ["bi-diagram-3",         "text-danger",  "Domain Names"],
-          ["bi-folder2",           "text-primary", "Windows &amp; Unix File Paths"],
+          ["bi-folder2",           "text-primary", "Windows & Unix File Paths"],
           ["bi-database",          "text-warning", "Windows Registry Keys"],
           ["bi-cpu",               "text-info",    "Mutex / Service Names"],
         ].each do |icon, color, label| %>
           <div class="col-12 col-md-6">
             <div class="d-flex align-items-center gap-2 px-3 py-2 rounded bg-body shadow-sm">
               <i class="bi <%= icon %> <%= color %> fs-5"></i>
-              <span class="small"><%= label.html_safe %></span>
+              <span class="small"><%= label %></span>
             </div>
           </div>
         <% end %>

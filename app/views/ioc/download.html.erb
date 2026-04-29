@@ -126,7 +126,7 @@
       <%# Per-group editable tables %>
       <% grouped.each do |group, items| %>
         <% meta = group_meta[group] || { label: group.to_s.capitalize, icon: "bi-tag", color: "secondary" } %>
-        <div class="card border-0 shadow-sm mb-4 ioc-group-card">
+        <div class="card border-0 shadow-sm mb-4 ioc-group-card" data-group="<%= group %>">
           <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between">
             <span><i class="bi <%= meta[:icon] %> text-<%= meta[:color] %> me-2"></i><strong><%= meta[:label] %></strong></span>
             <div class="d-flex align-items-center gap-2">
@@ -185,6 +185,9 @@
         </div>
       <% end %>
 
+      <%# Anchor point for JS-created group cards %>
+      <div id="ioc-group-anchor"></div>
+
       <%# Output format + save %>
       <div class="card border-0 shadow-sm mb-5">
         <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -209,9 +212,73 @@
               </div>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary px-5">
-            <i class="bi bi-save me-1"></i>Save &amp; Regenerate IOC
-          </button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-success px-4"
+                    data-bs-toggle="modal" data-bs-target="#add-indicator-modal">
+              <i class="bi bi-plus-circle me-1"></i>Add Indicator
+            </button>
+            <button type="submit" class="btn btn-primary px-5">
+              <i class="bi bi-save me-1"></i>Save &amp; Regenerate IOC
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <%# Add Indicator modal %>
+      <div class="modal fade" id="add-indicator-modal" tabindex="-1" aria-labelledby="add-indicator-label" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+              <h5 class="modal-title" id="add-indicator-label">
+                <i class="bi bi-plus-circle me-2"></i>Add Indicator
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Type</label>
+                <select class="form-select" id="add-ioc-type">
+                  <optgroup label="File Hashes">
+                    <option value="md5">MD5</option>
+                    <option value="sha1">SHA-1</option>
+                    <option value="sha256">SHA-256</option>
+                    <option value="sha512">SHA-512</option>
+                  </optgroup>
+                  <optgroup label="Network">
+                    <option value="ipv4">IPv4</option>
+                    <option value="ipv6">IPv6</option>
+                    <option value="url">URL</option>
+                    <option value="email">Email</option>
+                    <option value="domain">Domain</option>
+                  </optgroup>
+                  <optgroup label="File System">
+                    <option value="filepath_win">Windows Path</option>
+                    <option value="filepath_unix">Unix Path</option>
+                  </optgroup>
+                  <optgroup label="Registry">
+                    <option value="registry_key">Registry Key</option>
+                  </optgroup>
+                  <optgroup label="Process / Mutex">
+                    <option value="mutex">Mutex</option>
+                    <option value="service_name">Service Name</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="mb-1">
+                <label class="form-label fw-semibold">Value</label>
+                <input type="text" class="form-control font-monospace" id="add-ioc-value"
+                       placeholder="Enter indicator value…"
+                       data-action="keydown.enter->ioc-editor#confirmAdd">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-success px-4"
+                      data-action="click->ioc-editor#confirmAdd">
+                <i class="bi bi-plus-circle me-1"></i>Add
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

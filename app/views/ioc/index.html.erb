@@ -19,7 +19,7 @@
     <%# Upload card %>
     <div class="card shadow-sm border-0">
       <div class="card-body p-4 p-md-5">
-        <%= form_with url: convert_path, multipart: true, data: { controller: "upload" } do |f| %>
+        <%= form_with url: convert_path, multipart: true, data: { controller: "upload", turbo: false } do |f| %>
 
           <div class="mb-4">
             <%= f.label :ioc_name, "IOC Name / Description", class: "form-label fw-semibold" %>

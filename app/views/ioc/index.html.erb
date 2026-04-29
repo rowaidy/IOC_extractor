@@ -58,13 +58,13 @@
             <label class="form-label fw-semibold">Output format</label>
             <div class="d-flex gap-4">
               <div class="form-check">
-                <%= f.radio_button :split_mode, "auto", class: "form-check-input", id: "split_auto", checked: true %>
+                <%= f.radio_button :split_mode, "auto", class: "form-check-input", id: "split_auto" %>
                 <label class="form-check-label" for="split_auto">
                   Auto-split <span class="text-muted small">(multiple files if &gt;11 000 chars)</span>
                 </label>
               </div>
               <div class="form-check">
-                <%= f.radio_button :split_mode, "single", class: "form-check-input", id: "split_single" %>
+                <%= f.radio_button :split_mode, "single", class: "form-check-input", id: "split_single", checked: true %>
                 <label class="form-check-label" for="split_single">
                   Single file <span class="text-muted small">(no size limit enforced)</span>
                 </label>

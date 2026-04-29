@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import { Modal }      from "bootstrap"
 
 const TYPE_META = {
   sha512:        { label: "SHA-512",      group: "hash",       color: "secondary" },
@@ -57,6 +56,8 @@ export default class extends Controller {
   }
 
   confirmAdd(event) {
+    event.preventDefault()
+
     const valueInput = document.getElementById("add-ioc-value")
     const typeSelect = document.getElementById("add-ioc-type")
     const value      = valueInput.value.trim()
@@ -69,9 +70,8 @@ export default class extends Controller {
     }
     valueInput.classList.remove("is-invalid")
 
-    const meta      = TYPE_META[type]
-    const groupKey  = meta.group
-    const rowHtml   = this._buildRow(value, type, meta)
+    const meta     = TYPE_META[type]
+    const groupKey = meta.group
 
     let card = this.element.querySelector(`.ioc-group-card[data-group="${groupKey}"]`)
     if (!card) {
@@ -80,10 +80,12 @@ export default class extends Controller {
       anchor.insertAdjacentElement("beforebegin", card)
     }
 
-    card.querySelector("tbody").insertAdjacentHTML("beforeend", rowHtml)
+    card.querySelector("tbody").insertAdjacentHTML("beforeend", this._buildRow(value, type, meta))
 
-    // Close modal and reset inputs
-    Modal.getInstance(document.getElementById("add-indicator-modal"))?.hide()
+    // Dismiss modal via Bootstrap global
+    const modalEl = document.getElementById("add-indicator-modal")
+    window.bootstrap?.Modal?.getInstance(modalEl)?.hide()
+
     valueInput.value = ""
     typeSelect.selectedIndex = 0
 
